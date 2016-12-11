@@ -33,12 +33,12 @@ setup_grasshopper() {
 }
 
 if [[ "$module" = $HMDA_MODULE ]]; then
-
-elif [[ "$module" = $GRASSHOPPER_MODULE ]];
+        exit 0
+elif [[ "$module" = $GRASSHOPPER_MODULE ]]; then
 	setup_grasshopper;	
 else 
 	echo "Empty or invalid project name: $module"
-	return 1
+	exit 1	
 fi
 
 exit 0
