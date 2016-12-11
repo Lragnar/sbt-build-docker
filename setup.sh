@@ -1,4 +1,3 @@
-#!/bin/bash
 
 HMDA_MODULE="hmda"
 GRASSHOPPER_MODULE="grasshopper"
