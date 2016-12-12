@@ -5,10 +5,8 @@ GRASSHOPPER_MODULE="grasshopper"
 module=$1
 
 common_setup() {
-	tce-load -wi python && \
-	curl https://bootstrap.pypa.io/get-pip.py  && \
-        sudo python - && \
-	sudo pip install -U docker-compose 
+	tce-load -wi python && curl https://bootstrap.pypa.io/get-pip.py | \
+	  sudo python - && sudo pip install -U docker-compose
 
 	if [[ "$?" -ne 0 ]]; then
 		echo "Cannot install docker-compose"	
@@ -23,11 +21,22 @@ common_setup() {
 }
 
 setup_hmda() {
-	common_setup;	
+	common_setup
+	cd ~ && mkdir -p hmda && sudo chmod -R a+w hmda && cd hmda
+
+	git clone https://github.com/cfpb/hmda-platform.git
+	git clone https://github.com/cfpb/hmda-platform-auth.git
+	git clone https://github.com/cfpb/hmda-platform-ui.git
+
+	cd ~/hmda/hmda-platform && sed -i 's/inMemoryPersistence = "1.3.7"/inMemoryPersistence = "1.3.9"/g' project/Version.scala
+
+	docker run -v `pwd`:/io -w /io sbt-build clean assembly
+
+	sed -i 's/- \.\.\/hmda-ui\/dist:\/usr\/src\/app\/dist\///g' docker-compose.yml
 }
 
 setup_grasshopper() {
-	common_setup;
+	common_setup
 	cd ~ && mkdir -p grasshopper && sudo chmod -R a+w grasshopper && cd grasshopper
 	
 	git clone https://github.com/cfpb/grasshopper.git
@@ -37,9 +46,11 @@ setup_grasshopper() {
 	git clone https://github.com/cfpb/grasshopper-ui.git
 
 	cd ~/grasshopper/grasshopper && docker run -v `pwd`:/io -w /io sbt-build clean assembly
+
 	sed -i 's/- \.\.\/grasshopper-ui\/dist:\/usr\/src\/app\/dist\///g' docker-compose.yml
-        cd ~/grasshopper/grasshopper && docker-compose run loader ./index.js -f path/to/data.json && docker-compose run loader ./tiger.js -d path/to/tiger
-	cd ~/grasshopper/grasshopper && docker-compose up
+
+        docker-compose run loader ./index.js -f path/to/data.json && docker-compose run loader ./tiger.js -d path/to/tiger
+	docker-compose up
 }
 
 if [[ "$module" = $HMDA_MODULE ]]; then
@@ -47,7 +58,7 @@ if [[ "$module" = $HMDA_MODULE ]]; then
 elif [[ "$module" = $GRASSHOPPER_MODULE ]]; then
 	setup_grasshopper;	
 else 
-	echo "Empty or invalid project name: $module"
+	echo "Usage: setup.sh [hmda|grasshopper]"
 	exit 1	
 fi
 
