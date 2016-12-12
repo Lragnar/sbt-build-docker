@@ -5,10 +5,21 @@ GRASSHOPPER_MODULE="grasshopper"
 module=$1
 
 common_setup() {
-	tce-load -wi python && curl https://bootstrap.pypa.io/get-pip.py | \
-	  sudo python - && sudo pip install -U docker-compose
+	tce-load -wi python && \
+	curl https://bootstrap.pypa.io/get-pip.py  && \
+        sudo python - && \
+	sudo pip install -U docker-compose 
+
+	if [[ "$?" -ne 0 ]]; then
+		echo "Cannot install docker-compose"	
+		exit 1
+	fi	
 
 	docker build -t sbt-build .
+	if [[ "$?" -ne 0 ]]; then
+		echo "Cannot create image of sbt-build"	
+		exit 1
+	fi	
 }
 
 setup_hmda() {
