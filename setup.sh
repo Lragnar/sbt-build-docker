@@ -36,7 +36,7 @@ setup_hmda() {
 }
 
 setup_grasshopper() {
-	common_setup
+#	common_setup
 	cd ~ && mkdir -p grasshopper && sudo chmod -R a+w grasshopper && cd grasshopper
 	
 	git clone https://github.com/cfpb/grasshopper.git
